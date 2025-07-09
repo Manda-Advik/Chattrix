@@ -4,6 +4,7 @@ import { db } from '../firebase';
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, getDoc, setDoc, deleteDoc, getDocs } from 'firebase/firestore';
 import Loading from './Loading';
 import ChatMessages from './ChatMessages';
+import Layout from './Layout';
 
 function getDirectChatId(username1, username2) {
   // Always order alphabetically for unique chat id
@@ -184,41 +185,43 @@ function DirectChat({ username }) {
   }, []);
 
   if (loading) return <Loading />;
-  if (!friendExists) return <div style={{ textAlign: 'center', marginTop: 50, color: 'red' }}>You are not friends with {friendUsername}.</div>;
+  if (!friendExists) return <Layout><div style={{ textAlign: 'center', marginTop: 50, color: 'red' }}>You are not friends with {friendUsername}.</div></Layout>;
 
   return (
-    <div style={{ textAlign: 'center', marginTop: 50, maxWidth: 600, marginLeft: 'auto', marginRight: 'auto' }}>
-      <h1>Direct Chat with {friendUsername}</h1>
-      <ChatMessages
-        messages={messages}
-        onSend={handleSend}
-        sending={sending}
-        username={username}
-        inputRef={inputRef}
-        newMsg={newMsg}
-        setNewMsg={setNewMsg}
-        messagesEndRef={messagesEndRef}
-        placeholder="Type your message..."
-        onScheduleSend={handleScheduleSend}
-        onSendImage={handleSendImage}
-      />
-      {scheduledMessages.length > 0 && (
-        <div style={{ marginTop: 16, textAlign: 'left' }}>
-          <h4>Scheduled Messages</h4>
-          <ul style={{ paddingLeft: 20 }}>
-            {scheduledMessages.map((m, i) => (
-              <li key={m.id} style={{ marginBottom: 6, display: 'flex', alignItems: 'center' }}>
-                <span style={{ color: '#1976d2', fontWeight: 500 }}>{m.text}</span>
-                <span style={{ marginLeft: 8, color: '#888', fontSize: 13 }}>
-                  (Scheduled for {new Date(m.scheduledDate).toLocaleString()})
-                </span>
-                <button style={{ marginLeft: 12, fontSize: 12 }} onClick={() => handleCancelScheduled(m.id)}>Cancel</button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
+    <Layout>
+      <div style={{ textAlign: 'center', marginTop: 50 }}>
+        <h1>Direct Chat with {friendUsername}</h1>
+        <ChatMessages
+          messages={messages}
+          onSend={handleSend}
+          sending={sending}
+          username={username}
+          inputRef={inputRef}
+          newMsg={newMsg}
+          setNewMsg={setNewMsg}
+          messagesEndRef={messagesEndRef}
+          placeholder="Type your message..."
+          onScheduleSend={handleScheduleSend}
+          onSendImage={handleSendImage}
+        />
+        {scheduledMessages.length > 0 && (
+          <div style={{ marginTop: 16, textAlign: 'left' }}>
+            <h4>Scheduled Messages</h4>
+            <ul style={{ paddingLeft: 20 }}>
+              {scheduledMessages.map((m, i) => (
+                <li key={m.id} style={{ marginBottom: 6, display: 'flex', alignItems: 'center' }}>
+                  <span style={{ color: '#1976d2', fontWeight: 500 }}>{m.text}</span>
+                  <span style={{ marginLeft: 8, color: '#888', fontSize: 13 }}>
+                    (Scheduled for {new Date(m.scheduledDate).toLocaleString()})
+                  </span>
+                  <button style={{ marginLeft: 12, fontSize: 12 }} onClick={() => handleCancelScheduled(m.id)}>Cancel</button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </Layout>
   );
 }
 

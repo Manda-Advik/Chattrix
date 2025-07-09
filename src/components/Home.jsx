@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { db } from '../firebase'
 import { collection, setDoc, doc, getDoc, query, where, getDocs, runTransaction, onSnapshot } from 'firebase/firestore'
 import { useNavigate } from 'react-router-dom';
+import Layout from './Layout';
 
 // Toast notification
 function Toast({ message, onClose }) {
@@ -181,137 +182,139 @@ function Home({ user, onSignOut, username }) {
   };
 
   return (
-    <div style={{ textAlign: 'center', marginTop: 50 }}>
-      <h1>Welcome to the Home Page!</h1>
-      <p>Hello, {username}</p>
-      <div style={{ margin: '30px 0' }}>
-        {showCreate ? (
-          <>
-            <input
-              type="text"
-              placeholder="Enter room name"
-              value={roomName}
-              onChange={e => setRoomName(e.target.value)}
-              style={{ marginRight: 10 }}
-            />
-            <input
-              type="password"
-              placeholder="Set room password"
-              value={roomPassword}
-              onChange={e => setRoomPassword(e.target.value)}
-              style={{ marginRight: 10 }}
-            />
-            <button onClick={handleCreateRoom} style={{ marginRight: 20 }}>Create</button>
-            <button onClick={() => setShowCreate(false)}>Cancel</button>
-            {createError && <p style={{ color: 'red' }}>{createError}</p>}
-            {successMsg && <p style={{ color: 'green' }}>{successMsg}</p>}
-          </>
-        ) : (
-          <>
-            <button style={{ marginRight: 20 }} onClick={() => setShowCreate(true)}>Create Chat Room</button>
-            <form
-              style={{ display: 'inline-block', margin: 0 }}
-              onSubmit={async e => {
-                e.preventDefault();
-                setJoinError("");
-                let roomIdToJoin = joinRoomId.trim();
-                let roomDocSnap = null;
-                if (/^\d{6}$/.test(roomIdToJoin)) {
-                  // Input is a 6-digit room ID
-                  const roomRef = doc(db, "chatrooms", roomIdToJoin);
-                  roomDocSnap = await getDoc(roomRef);
-                } else {
-                  // Input is a room name, look up the room
-                  const q = query(collection(db, "chatrooms"), where("name", "==", roomIdToJoin));
-                  const querySnapshot = await getDocs(q);
-                  if (!querySnapshot.empty) {
-                    roomDocSnap = querySnapshot.docs[0];
-                    roomIdToJoin = roomDocSnap.id;
-                  }
-                }
-                if (!roomDocSnap || !roomDocSnap.exists()) {
-                  setJoinError("Room not found.");
-                  return;
-                }
-                const data = roomDocSnap.data();
-                if (data.password !== joinRoomPassword) {
-                  setJoinError("Incorrect password.");
-                  return;
-                }
-                // Add to user's chatroomsJoined subcollection
-                await setDoc(
-                  doc(db, 'users', username, 'chatroomsJoined', roomIdToJoin),
-                  { roomId: roomIdToJoin, name: data.name, joinedAt: new Date() }
-                );
-                // Add user to chatroom's members subcollection
-                await setDoc(
-                  doc(db, 'chatrooms', roomIdToJoin, 'members', username),
-                  { username, joinedAt: new Date() }
-                );
-                navigate(`/chatroom/${roomIdToJoin}`);
-              }}
-            >
+    <Layout>
+      <div style={{ textAlign: 'center', marginTop: 30 }}>
+        <h1>Welcome to the Home Page!</h1>
+        <p>Hello, {username}</p>
+        <div style={{ margin: '30px 0' }}>
+          {showCreate ? (
+            <>
               <input
                 type="text"
-                placeholder="Enter Room Name or 6-digit ID"
-                value={joinRoomId || ''}
-                onChange={e => setJoinRoomId(e.target.value)}
-                style={{ width: 180, marginRight: 8 }}
-                required
+                placeholder="Enter room name"
+                value={roomName}
+                onChange={e => setRoomName(e.target.value)}
+                style={{ marginRight: 10 }}
               />
               <input
                 type="password"
-                placeholder="Room password"
-                value={joinRoomPassword}
-                onChange={e => setJoinRoomPassword(e.target.value)}
-                style={{ width: 140, marginRight: 8 }}
-                required
+                placeholder="Set room password"
+                value={roomPassword}
+                onChange={e => setRoomPassword(e.target.value)}
+                style={{ marginRight: 10 }}
               />
-              {joinError && <p style={{ color: 'red', margin: 0 }}>{joinError}</p>}
-              <button type="submit">Join Chat Room</button>
-            </form>
-          </>
-        )}
+              <button onClick={handleCreateRoom} style={{ marginRight: 20 }}>Create</button>
+              <button onClick={() => setShowCreate(false)}>Cancel</button>
+              {createError && <p style={{ color: 'red' }}>{createError}</p>}
+              {successMsg && <p style={{ color: 'green' }}>{successMsg}</p>}
+            </>
+          ) : (
+            <>
+              <button style={{ marginRight: 20 }} onClick={() => setShowCreate(true)}>Create Chat Room</button>
+              <form
+                style={{ display: 'inline-block', margin: 0 }}
+                onSubmit={async e => {
+                  e.preventDefault();
+                  setJoinError("");
+                  let roomIdToJoin = joinRoomId.trim();
+                  let roomDocSnap = null;
+                  if (/^\d{6}$/.test(roomIdToJoin)) {
+                    // Input is a 6-digit room ID
+                    const roomRef = doc(db, "chatrooms", roomIdToJoin);
+                    roomDocSnap = await getDoc(roomRef);
+                  } else {
+                    // Input is a room name, look up the room
+                    const q = query(collection(db, "chatrooms"), where("name", "==", roomIdToJoin));
+                    const querySnapshot = await getDocs(q);
+                    if (!querySnapshot.empty) {
+                      roomDocSnap = querySnapshot.docs[0];
+                      roomIdToJoin = roomDocSnap.id;
+                    }
+                  }
+                  if (!roomDocSnap || !roomDocSnap.exists()) {
+                    setJoinError("Room not found.");
+                    return;
+                  }
+                  const data = roomDocSnap.data();
+                  if (data.password !== joinRoomPassword) {
+                    setJoinError("Incorrect password.");
+                    return;
+                  }
+                  // Add to user's chatroomsJoined subcollection
+                  await setDoc(
+                    doc(db, 'users', username, 'chatroomsJoined', roomIdToJoin),
+                    { roomId: roomIdToJoin, name: data.name, joinedAt: new Date() }
+                  );
+                  // Add user to chatroom's members subcollection
+                  await setDoc(
+                    doc(db, 'chatrooms', roomIdToJoin, 'members', username),
+                    { username, joinedAt: new Date() }
+                  );
+                  navigate(`/chatroom/${roomIdToJoin}`);
+                }}
+              >
+                <input
+                  type="text"
+                  placeholder="Enter Room Name or 6-digit ID"
+                  value={joinRoomId || ''}
+                  onChange={e => setJoinRoomId(e.target.value)}
+                  style={{ width: 180, marginRight: 8 }}
+                  required
+                />
+                <input
+                  type="password"
+                  placeholder="Room password"
+                  value={joinRoomPassword}
+                  onChange={e => setJoinRoomPassword(e.target.value)}
+                  style={{ width: 140, marginRight: 8 }}
+                  required
+                />
+                {joinError && <p style={{ color: 'red', margin: 0 }}>{joinError}</p>}
+                <button type="submit">Join Chat Room</button>
+              </form>
+            </>
+          )}
+        </div>
+        {/* Joined Chat Rooms List */}
+        <div style={{ margin: '30px 0' }}>
+          <h2>Joined Chat Rooms</h2>
+          {joinedLoading ? (
+            <p>Loading...</p>
+          ) : joinedRooms.length === 0 ? (
+            <p>No joined chat rooms found.</p>
+          ) : (
+            <ul style={{ listStyle: 'none', padding: 0 }}>
+              {joinedRooms.map(room => (
+                <li key={room.roomId} style={{ marginBottom: 12 }}>
+                  <button onClick={() => navigate(`/chatroom/${room.roomId}`)}>
+                    {room.name} (ID: {room.roomId})
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <button onClick={onSignOut}>Sign Out</button>
+        <div style={{ marginTop: 30 }}>
+          <h3>Add a Friend</h3>
+          <form onSubmit={handleSendFriendRequest}>
+            <input
+              type="text"
+              placeholder="Friend's username"
+              value={friendUsername}
+              onChange={e => setFriendUsername(e.target.value)}
+              style={{ marginRight: 10 }}
+            />
+            <button type="submit">Send Friend Request</button>
+          </form>
+          {/* Friend Requests List */}
+          <FriendRequests username={username} setToastMsg={setToastMsg} />
+          {/* Friends List */}
+          <FriendsList username={username} />
+        </div>
+        <Toast message={toastMsg} onClose={() => setToastMsg("")} />
       </div>
-      {/* Joined Chat Rooms List */}
-      <div style={{ margin: '30px 0' }}>
-        <h2>Joined Chat Rooms</h2>
-        {joinedLoading ? (
-          <p>Loading...</p>
-        ) : joinedRooms.length === 0 ? (
-          <p>No joined chat rooms found.</p>
-        ) : (
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            {joinedRooms.map(room => (
-              <li key={room.roomId} style={{ marginBottom: 12 }}>
-                <button onClick={() => navigate(`/chatroom/${room.roomId}`)}>
-                  {room.name} (ID: {room.roomId})
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-      <button onClick={onSignOut}>Sign Out</button>
-      <div style={{ marginTop: 30 }}>
-        <h3>Add a Friend</h3>
-        <form onSubmit={handleSendFriendRequest}>
-          <input
-            type="text"
-            placeholder="Friend's username"
-            value={friendUsername}
-            onChange={e => setFriendUsername(e.target.value)}
-            style={{ marginRight: 10 }}
-          />
-          <button type="submit">Send Friend Request</button>
-        </form>
-        {/* Friend Requests List */}
-        <FriendRequests username={username} setToastMsg={setToastMsg} />
-        {/* Friends List */}
-        <FriendsList username={username} />
-      </div>
-      <Toast message={toastMsg} onClose={() => setToastMsg("")} />
-    </div>
+    </Layout>
   );
 }
 

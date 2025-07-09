@@ -11,6 +11,7 @@ import { useLoading, LoadingProvider } from '../context/LoadingContext.jsx'
 import Loading from './Loading';
 import UsernamePrompt from '../auth/UsernamePrompt';
 
+
 function App() {
   const [user, setUser] = useState(null)
   const [email, setEmail] = useState("")
@@ -149,8 +150,8 @@ function App() {
     <Routes>
       <Route path="/login" element={
         (!user || showUsernamePrompt) ? (
-          <div style={{ textAlign: 'center', marginTop: 50 }}>
-            <h1>Chat App</h1>
+          <div style={{ textAlign: 'center', marginTop: 50 }} >
+            <h1>Chattrix</h1>
             {showUsernamePrompt ? (
               <UsernamePrompt
                 username={username}
@@ -170,6 +171,7 @@ function App() {
               />
             ) : (
               <>
+                <div className='login-container'>
                 <form onSubmit={handleEmailAuth} style={{ marginBottom: 20 }}>
                   <input
                     type="email"
@@ -195,6 +197,7 @@ function App() {
                 <div style={{ margin: '20px 0' }}>or</div>
                 <button onClick={handleGoogleSignIn} disabled={showUsernamePrompt}>Sign In with Google</button>
                 {error && <p style={{ color: 'red' }}>{error}</p>}
+                </div>
               </>
             )}
           </div>

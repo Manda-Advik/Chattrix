@@ -4,6 +4,7 @@ import { db } from '../firebase';
 import { collection, addDoc, doc, getDoc, onSnapshot, query, orderBy, serverTimestamp, setDoc, deleteDoc, getDocs } from 'firebase/firestore';
 import Loading from './Loading';
 import ChatMessages from './ChatMessages';
+import Layout from './Layout';
 
 function ChatRoom({ user, username }) {
   const { roomId } = useParams();
@@ -181,51 +182,51 @@ function ChatRoom({ user, username }) {
   }, []);
 
   if (loading) return <Loading />;
-  if (error) return <div style={{ textAlign: 'center', marginTop: 50, color: 'red' }}>{error}</div>;
+  if (error) return <div style={{ color: 'red', textAlign: 'center', marginTop: 50 }}>{error}</div>;
 
   return (
-    <div style={{ textAlign: 'center', marginTop: 50, maxWidth: 600, marginLeft: 'auto', marginRight: 'auto' }}>
-      <h1>Chat Room</h1>
-      <p>Room ID: {roomId}</p>
-      <p>Room Name: {roomName}</p>
-      <p>Created by: {createdBy}</p>
-      <ChatMessages
-        messages={messages}
-        onSend={handleSend}
-        sending={sending}
-        username={username}
-        inputRef={inputRef}
-        newMsg={newMsg}
-        setNewMsg={setNewMsg}
-        messagesEndRef={messagesEndRef}
-        placeholder="Type your message..."
-        onScheduleSend={handleScheduleSend}
-        onSendImage={handleSendImage}
-      >
-        <h4 style={{ margin: 0, marginBottom: 8 }}>Members</h4>
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-          {members.map(member => (
-            <li key={member} style={{ marginBottom: 6 }}>{member}</li>
-          ))}
-        </ul>
-      </ChatMessages>
-      {scheduledMessages.length > 0 && (
-        <div style={{ marginTop: 16, textAlign: 'left' }}>
-          <h4>Scheduled Messages</h4>
-          <ul style={{ paddingLeft: 20 }}>
-            {scheduledMessages.map((m, i) => (
-              <li key={m.id} style={{ marginBottom: 6, display: 'flex', alignItems: 'center' }}>
-                <span style={{ color: '#1976d2', fontWeight: 500 }}>{m.text}</span>
-                <span style={{ marginLeft: 8, color: '#888', fontSize: 13 }}>
-                  (Scheduled for {new Date(m.scheduledDate).toLocaleString()})
-                </span>
-                <button style={{ marginLeft: 12, fontSize: 12 }} onClick={() => handleCancelScheduled(m.id)}>Cancel</button>
-              </li>
+    <Layout>
+      <div style={{ textAlign: 'center', marginTop: 30 }}>
+        <h1>Room: {roomName}</h1>
+        <p style={{ color: '#aaa', marginBottom: 20 }}>Created by: {createdBy}</p>
+        <ChatMessages
+          messages={messages}
+          onSend={handleSend}
+          sending={sending}
+          username={username}
+          inputRef={inputRef}
+          newMsg={newMsg}
+          setNewMsg={setNewMsg}
+          messagesEndRef={messagesEndRef}
+          placeholder="Type your message..."
+          onScheduleSend={handleScheduleSend}
+          onSendImage={handleSendImage}
+        >
+          <h4 style={{ margin: 0, marginBottom: 8 }}>Members</h4>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {members.map(member => (
+              <li key={member} style={{ marginBottom: 6 }}>{member}</li>
             ))}
           </ul>
-        </div>
-      )}
-    </div>
+        </ChatMessages>
+        {scheduledMessages.length > 0 && (
+          <div style={{ marginTop: 16, textAlign: 'left' }}>
+            <h4>Scheduled Messages</h4>
+            <ul style={{ paddingLeft: 20 }}>
+              {scheduledMessages.map((m, i) => (
+                <li key={m.id} style={{ marginBottom: 6, display: 'flex', alignItems: 'center' }}>
+                  <span style={{ color: '#1976d2', fontWeight: 500 }}>{m.text}</span>
+                  <span style={{ marginLeft: 8, color: '#888', fontSize: 13 }}>
+                    (Scheduled for {new Date(m.scheduledDate).toLocaleString()})
+                  </span>
+                  <button style={{ marginLeft: 12, fontSize: 12 }} onClick={() => handleCancelScheduled(m.id)}>Cancel</button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </Layout>
   );
 }
 
