@@ -12,7 +12,6 @@ dist
 dist-ssr
 *.local
 
-.github
 .firebase
 
 # Editor directories and files
