@@ -5,6 +5,7 @@ import { collection, addDoc, doc, getDoc, onSnapshot, query, orderBy, serverTime
 import Loading from './Loading';
 import ChatMessages from './ChatMessages';
 import Layout from './Layout';
+import '../chatroom.css';
 
 function ChatRoom({ user, username }) {
   const { roomId } = useParams();
@@ -142,7 +143,6 @@ function ChatRoom({ user, username }) {
     const delay = scheduledDate.getTime() - Date.now();
     const timeoutId = setTimeout(() => handleSendScheduled({ id, text: msg, scheduledDate: scheduledDate.getTime(), roomId }), delay);
     setScheduledMessages(prev => [...prev, { id, text: msg, scheduledDate: scheduledDate.getTime(), roomId, timeoutId }]);
-    setSending(true);
   };
 
   const handleCancelScheduled = async (id) => {
@@ -152,22 +152,6 @@ function ChatRoom({ user, username }) {
       return prev.filter(m => m.id !== id);
     });
     await deleteDoc(doc(db, 'users', username, 'scheduledRoomMessages', id));
-  };
-
-  // Add image message handler
-  const handleSendImage = async (imageUrl) => {
-    if (!username) return;
-    setSending(true);
-    try {
-      await addDoc(collection(db, 'chatrooms', roomId, 'messages'), {
-        senderUsername: username,
-        type: 'image',
-        imageUrl,
-        timestamp: serverTimestamp(),
-      });
-      if (inputRef.current) inputRef.current.focus();
-    } catch {}
-    setSending(false);
   };
 
   // Focus input on Enter key if not focused
@@ -182,13 +166,18 @@ function ChatRoom({ user, username }) {
   }, []);
 
   if (loading) return <Loading />;
-  if (error) return <div style={{ color: 'red', textAlign: 'center', marginTop: 50 }}>{error}</div>;
+  if (error) return <div className="chatroom-error">{error}</div>;
 
   return (
     <Layout>
-      <div style={{ textAlign: 'center', marginTop: 30 }}>
-        <h1>Room: {roomName}</h1>
-        <p style={{ color: '#aaa', marginBottom: 20 }}>Created by: {createdBy}</p>
+      <div className="chatroom-container">
+        <h1 style={{ color: '#111', background: 'none', WebkitBackgroundClip: 'initial', WebkitTextFillColor: 'initial' }}>
+          Room: {roomName}
+        </h1>
+        <div style={{ color: '#555', fontSize: '1rem', marginBottom: 8 }}>
+          Room ID: <span style={{ fontFamily: 'monospace', color: '#222' }}>{roomId}</span>
+        </div>
+        <p className="chatroom-created-by">Created by: {createdBy}</p>
         <ChatMessages
           messages={messages}
           onSend={handleSend}
@@ -200,26 +189,32 @@ function ChatRoom({ user, username }) {
           messagesEndRef={messagesEndRef}
           placeholder="Type your message..."
           onScheduleSend={handleScheduleSend}
-          onSendImage={handleSendImage}
         >
-          <h4 style={{ margin: 0, marginBottom: 8 }}>Members</h4>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          <h4 className="members-title">Members</h4>
+          <ul className="members-list">
             {members.map(member => (
-              <li key={member} style={{ marginBottom: 6 }}>{member}</li>
+              <li
+                key={member}
+                className="member-item"
+              >
+                {member}
+              </li>
             ))}
           </ul>
         </ChatMessages>
         {scheduledMessages.length > 0 && (
-          <div style={{ marginTop: 16, textAlign: 'left' }}>
+          <div className="scheduled-messages-container">
             <h4>Scheduled Messages</h4>
-            <ul style={{ paddingLeft: 20 }}>
+            <ul className="scheduled-messages-list">
               {scheduledMessages.map((m, i) => (
-                <li key={m.id} style={{ marginBottom: 6, display: 'flex', alignItems: 'center' }}>
-                  <span style={{ color: '#1976d2', fontWeight: 500 }}>{m.text}</span>
-                  <span style={{ marginLeft: 8, color: '#888', fontSize: 13 }}>
-                    (Scheduled for {new Date(m.scheduledDate).toLocaleString()})
-                  </span>
-                  <button style={{ marginLeft: 12, fontSize: 12 }} onClick={() => handleCancelScheduled(m.id)}>Cancel</button>
+                <li key={m.id} className="scheduled-message-item">
+                  <span className="scheduled-message-text">{m.text}</span>
+                  <div className="scheduled-message-footer">
+                    <span className="scheduled-message-time">
+                      (Scheduled for {new Date(m.scheduledDate).toLocaleString()})
+                    </span>
+                    <button className="scheduled-message-cancel" onClick={() => handleCancelScheduled(m.id)}>Cancel</button>
+                  </div>
                 </li>
               ))}
             </ul>

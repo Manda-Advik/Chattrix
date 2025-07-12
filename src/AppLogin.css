@@ -35,8 +35,8 @@
 }
 
 .login-title {
-  font-family: "VT323", monospace;
-  font-weight: 400;
+  font-family: "Turret Road", sans-serif;
+  font-weight: 800;
   font-style: normal;
   font-size: 5rem !important; /* Force smaller size */
   font-weight: bold !important;
@@ -91,7 +91,10 @@
   margin-top: 0 !important;
 }
 
-
+.home-btn{
+    padding-left: 5px;
+    padding-right: 5px;
+}
 
 .login-container button {
   width: 100%;
@@ -306,7 +309,9 @@
   letter-spacing: 1px;
   display: inline;
   color: #000000;
-  font-family: "VT323", monospace;
+  font-family: "Turret Road", sans-serif;
+  font-weight: 800;
+  font-style: normal;
 }
 
 .chattrix-highlight {
@@ -380,4 +385,102 @@ autofill-selected {
   font-weight: bold;
   padding-top: 20px;
 
+}
+
+/* UsernamePrompt styles */
+.username-prompt-outer {
+  min-height: 50vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+}
+
+.username-prompt-inner {
+  background: rgba(255,255,255,0.95);
+  padding: 32px 28px 28px 28px;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px #0001;
+  min-width: 320px;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.username-prompt-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.username-prompt-form input[type="text"] {
+  border: 1.5px solid #ecedec;
+  border-radius: 15px;
+  height: 48px;
+  padding: 0 28px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-family: inherit;
+  background: #f7fafd;
+  transition: border 0.2s;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.username-prompt-form input[type="text"]:focus {
+  outline: none;
+  border-color: #000000;
+  background: #f7fafd;
+}
+
+.username-prompt-error {
+  color: #e53935;
+  font-size: 1rem;
+  margin-top: 4px;
+  margin-bottom: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.username-prompt-form button[type="submit"] {
+  background: #000000;
+  color: #fff;
+  border: none;
+  border-radius: 15px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 0 28px;
+  height: 48px;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.08);
+}
+
+.username-prompt-form button[type="submit"]:hover:not(:disabled) {
+  background: #272727;
+}
+
+.username-prompt-back {
+  background: #fff;
+  color: #151717;
+  border: 1.5px solid #151717;
+  border-radius: 15px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 0 28px;
+  height: 44px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  margin-top: 0;
+  width: 100%;
+}
+
+.username-prompt-back:hover:not(:disabled) {
+  background: #000000;
+  color: #fff;
 }

@@ -2,21 +2,22 @@ import React from 'react';
 
 export default function UsernamePrompt({ username, setUsername, usernameError, handleSetUsername, loading, onBack }) {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ background: 'rgba(255,255,255,0.9)', padding: 32, borderRadius: 16, boxShadow: '0 4px 24px #0001', minWidth: 320 }}>
-        <form onSubmit={handleSetUsername} style={{ marginBottom: 20 }}>
+    <div className="username-prompt-outer">
+      <div className="username-prompt-inner">
+        <h2 style={{marginBottom: 8, fontWeight: 700, fontSize: '1.6rem', color: '#151717'}}>Set a Username</h2>
+        <p style={{marginBottom: 18, color: '#444', fontSize: '1.05rem'}}>Set a username to your account to continue.</p>
+        <form onSubmit={handleSetUsername} className="username-prompt-form">
           <input
             type="text"
             placeholder="Username"
             value={username}
             onChange={e => setUsername(e.target.value)}
             required
-            style={{ marginRight: 10 }}
           />
-          {usernameError && <span style={{ color: 'red' }}>{usernameError}</span>}
+          {usernameError && <span className="username-prompt-error">{usernameError}</span>}
           <button type="submit" disabled={loading}>Set Username</button>
         </form>
-        <button onClick={onBack} style={{ marginBottom: 20 }} disabled={loading}>
+        <button onClick={onBack} disabled={loading} className="username-prompt-back">
           Back to Email/Password
         </button>
       </div>

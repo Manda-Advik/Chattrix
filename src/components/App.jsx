@@ -145,7 +145,7 @@ function App() {
     setUser(null)
   }
 
-  if (loading) {
+  if (loading || (user && !showUsernamePrompt && !username)) {
     return <Loading />;
   }
 
@@ -199,12 +199,9 @@ function App() {
                   loading={loading}
                   onBack={async () => {
                     setLoading(true);
-                    setShowUsernamePrompt(false);
-                    setUsername("");
                     await signOut(auth);
                     setUser(null);
                     setLoading(false);
-                    navigate("/login");
                   }}
                 />
               ) : (

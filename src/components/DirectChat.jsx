@@ -139,7 +139,6 @@ function DirectChat({ username }) {
     const delay = scheduledDate.getTime() - Date.now();
     const timeoutId = setTimeout(() => handleSendScheduled({ id, text: msg, scheduledDate: scheduledDate.getTime(), friendUsername }), delay);
     setScheduledMessages(prev => [...prev, { id, text: msg, scheduledDate: scheduledDate.getTime(), friendUsername, timeoutId }]);
-    setSending(true);
   };
 
   const handleCancelScheduled = async (id) => {
@@ -149,28 +148,6 @@ function DirectChat({ username }) {
       return prev.filter(m => m.id !== id);
     });
     await deleteDoc(doc(db, 'users', username, 'scheduledDirectMessages', id));
-  };
-
-  // Add image message handler
-  const handleSendImage = async (imageUrl) => {
-    if (!username || !friendUsername) return;
-    setSending(true);
-    try {
-      await addDoc(collection(db, 'directChats', chatId, 'messages'), {
-        senderUsername: username,
-        recipientUsername: friendUsername,
-        type: 'image',
-        imageUrl,
-        timestamp: serverTimestamp(),
-      });
-      await setDoc(doc(db, 'directChats', chatId), {
-        users: [username, friendUsername],
-        lastMessage: '[image]',
-        lastTimestamp: serverTimestamp(),
-      }, { merge: true });
-      if (inputRef.current) inputRef.current.focus();
-    } catch {}
-    setSending(false);
   };
 
   // Focus input on Enter key if not focused
@@ -202,19 +179,20 @@ function DirectChat({ username }) {
           messagesEndRef={messagesEndRef}
           placeholder="Type your message..."
           onScheduleSend={handleScheduleSend}
-          onSendImage={handleSendImage}
         />
         {scheduledMessages.length > 0 && (
-          <div style={{ marginTop: 16, textAlign: 'left' }}>
+          <div className="scheduled-messages-container">
             <h4>Scheduled Messages</h4>
-            <ul style={{ paddingLeft: 20 }}>
+            <ul className="scheduled-messages-list">
               {scheduledMessages.map((m, i) => (
-                <li key={m.id} style={{ marginBottom: 6, display: 'flex', alignItems: 'center' }}>
-                  <span style={{ color: '#1976d2', fontWeight: 500 }}>{m.text}</span>
-                  <span style={{ marginLeft: 8, color: '#888', fontSize: 13 }}>
-                    (Scheduled for {new Date(m.scheduledDate).toLocaleString()})
-                  </span>
-                  <button style={{ marginLeft: 12, fontSize: 12 }} onClick={() => handleCancelScheduled(m.id)}>Cancel</button>
+                <li key={m.id} className="scheduled-message-item">
+                  <span className="scheduled-message-text">{m.text}</span>
+                  <div className="scheduled-message-footer">
+                    <span className="scheduled-message-time">
+                      (Scheduled for {new Date(m.scheduledDate).toLocaleString()})
+                    </span>
+                    <button className="scheduled-message-cancel" onClick={() => handleCancelScheduled(m.id)}>Cancel</button>
+                  </div>
                 </li>
               ))}
             </ul>

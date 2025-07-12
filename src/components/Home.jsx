@@ -2,33 +2,7 @@ import { useEffect, useState } from 'react'
 import { db } from '../firebase'
 import { collection, setDoc, doc, getDoc, query, where, getDocs, runTransaction, onSnapshot } from 'firebase/firestore'
 import { useNavigate } from 'react-router-dom';
-import Layout from './Layout';
-
-// Toast notification
-function Toast({ message, onClose }) {
-  useEffect(() => {
-    if (!message) return;
-    const timer = setTimeout(onClose, 3000);
-    return () => clearTimeout(timer);
-  }, [message, onClose]);
-  if (!message) return null;
-  return (
-    <div style={{
-      position: 'fixed',
-      bottom: 30,
-      left: '50%',
-      transform: 'translateX(-50%)',
-      background: '#333',
-      color: '#fff',
-      padding: '12px 24px',
-      borderRadius: 8,
-      zIndex: 9999,
-      fontSize: 16
-    }}>
-      {message}
-    </div>
-  );
-}
+import '../home.css';
 
 function generateRoomId() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -182,139 +156,160 @@ function Home({ user, onSignOut, username }) {
   };
 
   return (
-    <Layout>
-      <div style={{ textAlign: 'center', marginTop: 30 }}>
-        <h1>Welcome to the Home Page!</h1>
-        <p>Hello, {username}</p>
-        <div style={{ margin: '30px 0' }}>
-          {showCreate ? (
-            <>
-              <input
-                type="text"
-                placeholder="Enter room name"
-                value={roomName}
-                onChange={e => setRoomName(e.target.value)}
-                style={{ marginRight: 10 }}
-              />
-              <input
-                type="password"
-                placeholder="Set room password"
-                value={roomPassword}
-                onChange={e => setRoomPassword(e.target.value)}
-                style={{ marginRight: 10 }}
-              />
-              <button onClick={handleCreateRoom} style={{ marginRight: 20 }}>Create</button>
-              <button onClick={() => setShowCreate(false)}>Cancel</button>
-              {createError && <p style={{ color: 'red' }}>{createError}</p>}
-              {successMsg && <p style={{ color: 'green' }}>{successMsg}</p>}
-            </>
-          ) : (
-            <>
-              <button style={{ marginRight: 20 }} onClick={() => setShowCreate(true)}>Create Chat Room</button>
-              <form
-                style={{ display: 'inline-block', margin: 0 }}
-                onSubmit={async e => {
-                  e.preventDefault();
-                  setJoinError("");
-                  let roomIdToJoin = joinRoomId.trim();
-                  let roomDocSnap = null;
-                  if (/^\d{6}$/.test(roomIdToJoin)) {
-                    // Input is a 6-digit room ID
-                    const roomRef = doc(db, "chatrooms", roomIdToJoin);
-                    roomDocSnap = await getDoc(roomRef);
-                  } else {
-                    // Input is a room name, look up the room
-                    const q = query(collection(db, "chatrooms"), where("name", "==", roomIdToJoin));
-                    const querySnapshot = await getDocs(q);
-                    if (!querySnapshot.empty) {
-                      roomDocSnap = querySnapshot.docs[0];
-                      roomIdToJoin = roomDocSnap.id;
-                    }
-                  }
-                  if (!roomDocSnap || !roomDocSnap.exists()) {
-                    setJoinError("Room not found.");
-                    return;
-                  }
-                  const data = roomDocSnap.data();
-                  if (data.password !== joinRoomPassword) {
-                    setJoinError("Incorrect password.");
-                    return;
-                  }
-                  // Add to user's chatroomsJoined subcollection
-                  await setDoc(
-                    doc(db, 'users', username, 'chatroomsJoined', roomIdToJoin),
-                    { roomId: roomIdToJoin, name: data.name, joinedAt: new Date() }
-                  );
-                  // Add user to chatroom's members subcollection
-                  await setDoc(
-                    doc(db, 'chatrooms', roomIdToJoin, 'members', username),
-                    { username, joinedAt: new Date() }
-                  );
-                  navigate(`/chatroom/${roomIdToJoin}`);
-                }}
-              >
-                <input
-                  type="text"
-                  placeholder="Enter Room Name or 6-digit ID"
-                  value={joinRoomId || ''}
-                  onChange={e => setJoinRoomId(e.target.value)}
-                  style={{ width: 180, marginRight: 8 }}
-                  required
-                />
-                <input
-                  type="password"
-                  placeholder="Room password"
-                  value={joinRoomPassword}
-                  onChange={e => setJoinRoomPassword(e.target.value)}
-                  style={{ width: 140, marginRight: 8 }}
-                  required
-                />
-                {joinError && <p style={{ color: 'red', margin: 0 }}>{joinError}</p>}
-                <button type="submit">Join Chat Room</button>
-              </form>
-            </>
-          )}
+      <div className="home-page-container">
+        <button className="home-signout-btn" onClick={onSignOut}>Sign Out</button>
+        <div className="home-title-section">
+          <h1 className="home-header" style={{textAlign: 'center', paddingLeft: 0}}>Welcome to Chattrix!</h1>
+          <div className="home-welcome" style={{textAlign: 'center', paddingLeft: 0}}>Hello, {username}</div>
         </div>
-        {/* Joined Chat Rooms List */}
-        <div style={{ margin: '30px 0' }}>
-          <h2>Joined Chat Rooms</h2>
-          {joinedLoading ? (
-            <p>Loading...</p>
-          ) : joinedRooms.length === 0 ? (
-            <p>No joined chat rooms found.</p>
-          ) : (
-            <ul style={{ listStyle: 'none', padding: 0 }}>
-              {joinedRooms.map(room => (
-                <li key={room.roomId} style={{ marginBottom: 12 }}>
-                  <button onClick={() => navigate(`/chatroom/${room.roomId}`)}>
-                    {room.name} (ID: {room.roomId})
+        <div className="home-content-scroll">
+          {/* Left: Chat Rooms */}
+          <div className="home-left">
+            <div className="chatroom-section">
+              {/* Split forms into two halves (now only join form remains) */}
+              <div className="home-forms-row">
+                <div className="home-join-form">
+                  <form
+                    className="home-form-row"
+                    onSubmit={async e => {
+                      e.preventDefault();
+                      setJoinError("");
+                      let roomIdToJoin = joinRoomId.trim();
+                      let roomDocSnap = null;
+                      if (/^\d{6}$/.test(roomIdToJoin)) {
+                        // Input is a 6-digit room ID
+                        const roomRef = doc(db, "chatrooms", roomIdToJoin);
+                        roomDocSnap = await getDoc(roomRef);
+                      } else {
+                        // Input is a room name, look up the room
+                        const q = query(collection(db, "chatrooms"), where("name", "==", roomIdToJoin));
+                        const querySnapshot = await getDocs(q);
+                        if (!querySnapshot.empty) {
+                          roomDocSnap = querySnapshot.docs[0];
+                          roomIdToJoin = roomDocSnap.id;
+                        }
+                      }
+                      if (!roomDocSnap || !roomDocSnap.exists()) {
+                        setJoinError("Room not found.");
+                        return;
+                      }
+                      const data = roomDocSnap.data();
+                      if (data.password !== joinRoomPassword) {
+                        setJoinError("Incorrect password.");
+                        return;
+                      }
+                      // Add to user's chatroomsJoined subcollection
+                      await setDoc(
+                        doc(db, 'users', username, 'chatroomsJoined', roomIdToJoin),
+                        { roomId: roomIdToJoin, name: data.name, joinedAt: new Date() }
+                      );
+                      // Add user to chatroom's members subcollection
+                      await setDoc(
+                        doc(db, 'chatrooms', roomIdToJoin, 'members', username),
+                        { username, joinedAt: new Date() }
+                      );
+                      navigate(`/chatroom/${roomIdToJoin}`);
+                    }}
+                  >
+                    <input
+                      type="text"
+                      className="home-input"
+                      placeholder="Enter Room Name or 6-digit ID"
+                      value={joinRoomId || ''}
+                      onChange={e => setJoinRoomId(e.target.value)}
+                      required
+                    />
+                    <input
+                      type="password"
+                      className="home-password"
+                      placeholder="Room password"
+                      value={joinRoomPassword}
+                      onChange={e => setJoinRoomPassword(e.target.value)}
+                      required
+                    />
+                    <button className="home-btn home-btn-primary" type="submit">Join Chat Room</button>
+                  </form>
+                  {joinError && <div className="home-error">{joinError}</div>}
+                </div>
+              </div>
+              {/* Joined Chat Rooms and Create Room button beside title */}
+              <div className="home-card">
+                <div className="home-joined-header-row">
+                  <h2>{showCreate ? 'Create a Chat Room' : 'Joined Chat Rooms'}</h2>
+                  <button className="home-btn home-btn-primary" style={{marginLeft: 'auto'}} onClick={() => setShowCreate(v => !v)}>
+                    {showCreate ? 'Back to Joined Rooms' : 'Create a Chat Room'}
                   </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        <button onClick={onSignOut}>Sign Out</button>
-        <div style={{ marginTop: 30 }}>
-          <h3>Add a Friend</h3>
-          <form onSubmit={handleSendFriendRequest}>
-            <input
-              type="text"
-              placeholder="Friend's username"
-              value={friendUsername}
-              onChange={e => setFriendUsername(e.target.value)}
-              style={{ marginRight: 10 }}
-            />
-            <button type="submit">Send Friend Request</button>
-          </form>
-          {/* Friend Requests List */}
-          <FriendRequests username={username} setToastMsg={setToastMsg} />
-          {/* Friends List */}
-          <FriendsList username={username} />
+                </div>
+                {showCreate ? (
+                  <>
+                    <div className="home-form-row">
+                      <input
+                        type="text"
+                        className="home-input"
+                        placeholder="Enter room name"
+                        value={roomName}
+                        onChange={e => setRoomName(e.target.value)}
+                      />
+                      <input
+                        type="password"
+                        className="home-password"
+                        placeholder="Set room password"
+                        value={roomPassword}
+                        onChange={e => setRoomPassword(e.target.value)}
+                      />
+                      <button className="home-btn home-btn-primary" onClick={handleCreateRoom}>Create</button>
+                      <button className="home-btn home-btn-secondary" onClick={() => setShowCreate(false)}>Cancel</button>
+                    </div>
+                    {createError && <div className="home-error">{createError}</div>}
+                    {successMsg && <div className="home-success">{successMsg}</div>}
+                  </>
+                ) : (
+                  joinedLoading ? (
+                    <p>Loading...</p>
+                  ) : joinedRooms.length === 0 ? (
+                    <p>No joined chat rooms found.</p>
+                  ) : (
+                    <ul className="home-list">
+                      {joinedRooms.map(room => (
+                        <li key={room.roomId}>
+                          <span>{room.name} (ID: {room.roomId})</span>
+                          <button className="home-btn home-btn-secondary" onClick={() => navigate(`/chatroom/${room.roomId}`)}>
+                            Open
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )
+                )}
+              </div>
+            </div>
+          </div>
+          {/* Right: Friends */}
+          <div className="home-right">
+            <div className="friend-section">
+              <div className="home-card">
+                <h3>Add a Friend</h3>
+                <form className="home-form-row" onSubmit={handleSendFriendRequest}>
+                  <input
+                    type="text"
+                    className="home-input"
+                    placeholder="Friend's username"
+                    value={friendUsername}
+                    onChange={e => setFriendUsername(e.target.value)}
+                  />
+                  <button className="home-btn home-btn-primary" type="submit">Send Friend Request</button>
+                </form>
+                {friendMsg && <div className="home-error">{friendMsg}</div>}
+                {/* Friend Requests List */}
+                <FriendRequests username={username} setToastMsg={setToastMsg} />
+                {/* Friends List */}
+                <FriendsList username={username} />
+              </div>
+            </div>
+          </div>
         </div>
         <Toast message={toastMsg} onClose={() => setToastMsg("")} />
       </div>
-    </Layout>
   );
 }
 
@@ -365,14 +360,14 @@ function FriendRequests({ username, setToastMsg }) {
 
   if (!requests || requests.length === 0) return null;
   return (
-    <div style={{ marginTop: 20 }}>
+    <div style={{ marginTop: 20, width: '100%' }}>
       <h4>Friend Requests</h4>
-      <ul style={{ listStyle: 'none', padding: 0 }}>
+      <ul className="home-list">
         {requests.map(req => (
-          <li key={req.id} style={{ marginBottom: 8 }}>
-            {req.from}
-            <button style={{ marginLeft: 10 }} onClick={() => handleAccept(req.from)}>Accept</button>
-            <button style={{ marginLeft: 10 }} onClick={() => handleReject(req.from)}>Reject</button>
+          <li key={req.id}>
+            <span>{req.from}</span>
+            <button className="home-btn home-btn-primary" style={{ marginLeft: 10 }} onClick={() => handleAccept(req.from)}>Accept</button>
+            <button className="home-btn home-btn-secondary" style={{ marginLeft: 10 }} onClick={() => handleReject(req.from)}>Reject</button>
           </li>
         ))}
       </ul>
@@ -395,18 +390,33 @@ function FriendsList({ username }) {
 
   if (friends.length === 0) return null;
   return (
-    <div style={{ marginTop: 20 }}>
+    <div style={{ marginTop: 20, width: '100%' }}>
       <h4>Your Friends</h4>
-      <ul style={{ listStyle: 'none', padding: 0 }}>
+      <ul className="home-list">
         {friends.map(friend => (
-          <li key={friend} style={{ marginBottom: 8 }}>
-            {friend}
-            <button style={{ marginLeft: 10 }} onClick={() => navigate(`/direct/${friend}`)}>
+          <li key={friend}>
+            <span>{friend}</span>
+            <button className="home-btn home-btn-primary" style={{ marginLeft: 10 }} onClick={() => navigate(`/direct/${friend}`)}>
               Message
             </button>
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+// Toast notification
+function Toast({ message, onClose }) {
+  useEffect(() => {
+    if (!message) return;
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [message, onClose]);
+  if (!message) return null;
+  return (
+    <div className="home-toast">
+      {message}
     </div>
   );
 }
